@@ -52,21 +52,25 @@ def gather_docs(html, now):
 
 
 def main():
-    with urlopen(base_url) as r, sqlite3.connect('data.sqlite') as c:
+    with urlopen(base_url) as r:
         src = r.read().decode('windows-1253')
-        now = dt.datetime.now().isoformat()
-        c.execute('''\
+
+    now = dt.datetime.now().isoformat()
+    con = sqlite3.connect('data.sqlite')
+    with con:
+        con.execute('''\
+CREATE TABLE IF NOT EXISTS first_reading_archive
+(src, time_last_scraped, UNIQUE (src))''')
+        con.execute('''\
+INSERT OR REPLACE INTO first_reading_archive VALUES (?, ?)''', (src, now))
+    with con:
+        con.execute('''\
 CREATE TABLE IF NOT EXISTS first_reading
 (number, title, sponsors, committees, date_tabled, time_last_scraped,
  UNIQUE (number, title, date_tabled))''')
-        c.executemany('''\
+        con.executemany('''\
 INSERT OR REPLACE INTO first_reading VALUES (?, ?, ?, ?, ?, ?)''',
             gather_docs(parse_html(src), now))
-        c.execute('''\
-CREATE TABLE IF NOT EXISTS first_reading_archive
-(src, time_last_scraped, UNIQUE (src))''')
-        c.execute('''\
-INSERT OR REPLACE INTO first_reading_archive VALUES (?, ?)''', (src, now))
 
 if __name__ == '__main__':
     main()
