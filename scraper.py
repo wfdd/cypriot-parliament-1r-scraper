@@ -32,8 +32,10 @@ def parse_date(html):
 
 
 def parse_doc(doc, date, now):
-    title, *other = (' '.join(i.text_content().split())
-                     for i in doc.xpath('.//td'))
+    cols = doc.xpath('.//td')
+    if len(cols) > 3:
+        cols = cols[1:]
+    title, *other = (' '.join(i.text_content().split()) for i in cols)
     return (number_match.search(title).group(1),
             number_match.sub('', title).strip(),
             *(*other, None)[:2],
