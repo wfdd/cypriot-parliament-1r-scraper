@@ -1,6 +1,5 @@
 
 import datetime as dt
-import itertools as it
 import re
 import sqlite3
 from urllib.request import urlopen
@@ -28,7 +27,8 @@ def parse_date(html):
     date, = html.xpath('//p[contains(string(.), "Συνεδρία Βουλής ημερομηνίας")]')
     date = date.text_content().replace('Συνεδρία Βουλής ημερομηνίας', '')
     d, m, y = date.split()
-    return '{}-{:02d}-{:02d}'.format(*map(int, (y, greek_months[m], d)))
+    return dt.date(int(y), greek_months[m], int(''.join(c for c in d if c.isdigit())))\
+             .isoformat()
 
 
 def parse_doc(doc, date, now):
@@ -43,11 +43,10 @@ def parse_doc(doc, date, now):
 
 def gather_docs(html, now):
     date = parse_date(html)
-    docs = it.chain.from_iterable(
-        t.xpath('.//tr[position() > 1]')
-        for t in html.xpath('//p[contains(string(.), "ΚΕΦΑΛΑΙΟ Β΄")]'
-                            '/following-sibling::table'))
-    for doc in docs:
+    for doc in (r
+                for t in html.xpath('//p[contains(string(.), "ΚΕΦΑΛΑΙΟ Β΄")]'
+                                    '/following-sibling::table')
+                for r in t.xpath('.//tr[position() > 1]')):
         yield parse_doc(doc, date, now)
 
 
