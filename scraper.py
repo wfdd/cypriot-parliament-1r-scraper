@@ -20,7 +20,7 @@ greek_months = {'Ιανουαρίου': 1,
                 'Οκτωβρίου': 10,
                 'Νοεμβρίου': 11,
                 'Δεκεμβρίου': 12}
-number_match = re.compile(r'\(?Αρ\.\s+[Φφ]ακ\.\s+([0-9-.]+)\)\.?')
+number_match = re.compile(r'\(?Αρ\.\s*[Φφ]ακ\.\s*([0-9-.]+)\)\.?')
 
 
 def parse_date(html):
